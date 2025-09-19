@@ -1,0 +1,44 @@
+body {
+  overflow-x: hidden; /* cegah scroll horizontal global */
+}
+
+.label-provinsi {
+  font-size: 20px !important;
+  font-weight: bold;
+  color: darkblue;
+  text-shadow: 1px 1px 2px #fff; /* biar terbaca di atas peta */
+}
+.popup-provinsi {
+  font-size: 10px !important;
+  font-weight: bold;
+  color: darkblue;
+}
+
+.geojson-style {
+  color: #2543b1ff; /* garis border */
+  weight: 1; /* ketebalan garis */
+  fillcolor: rgb(204, 204, 204); /* warna isi */
+  fillopacity: 0.3; /* transparansi */
+}
+
+.map-label {
+  font-size: 9px;
+  font-weight: bold;
+  color: #000;
+  text-shadow: 1px 1px 2px #fff;
+}
+.head-nasional {
+  font-size: 13px;
+  font-weight: bold;
+}
+.isi {
+  font-size: 19px;
+}
+.table-prov {
+  font-size: 13px;
+}
+
+.combo_chart {
+  width: "900px";
+  margin: "0 auto";
+}
