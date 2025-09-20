@@ -1,6 +1,6 @@
 import React from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-// import getApiBackend from "../../api/ApiBackend";
+import getApiBackend from "../../api/ApiBackend";
 
 const data = [
   { name: "PAUD", value: 400 },

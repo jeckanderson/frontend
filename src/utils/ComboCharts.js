@@ -13,6 +13,7 @@ import {
 } from "chart.js";
 import { Chart } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import { cleanNumber } from "./cleanNumber";
 
 // register chart.js
 ChartJS.register(
@@ -27,11 +28,6 @@ ChartJS.register(
   ChartDataLabels
 );
 
-const parseAnggaran = (value) => {
-  if (!value) return 0;
-  return Number(value.replace(/,/g, "").trim());
-};
-
 export const ComboChart = () => {
   const [chartData, setChartData] = useState(null);
 
@@ -40,17 +36,40 @@ export const ComboChart = () => {
       try {
         const getDataRevitalisasi = await ApiBackend.getRevitalisasi();
 
+        // ambil data provinsi
         const dataProvinsi = getDataRevitalisasi.filter(
           (item) => item.tingkat_label === "provinsi"
         );
 
-        const labels = dataProvinsi.map((item) => item.nama_wilayah);
-        const jumlah = dataProvinsi.map(
-          (item) => item.total_jml_rev_sekolah || 0
-        );
-        const anggaran = dataProvinsi.map((item) =>
-          parseAnggaran(item.total_anggaran_rev)
-        );
+        // hitung total kabupaten per provinsi
+        const provinsiWithTotall = dataProvinsi.map((prov) => {
+          const kabupatenData = getDataRevitalisasi.filter(
+            (item) =>
+              item.tingkat_label === "kabupaten" &&
+              item.kode_pro === prov.kode_pro
+          );
+
+          const totalSekolah = kabupatenData.reduce(
+            (sum, item) => sum + (item.total_jml_rev_sekolah || 0),
+            0
+          );
+
+          const totalAnggaran = kabupatenData.reduce(
+            (sum, item) => sum + cleanNumber(item.total_anggaran_rev || "0"),
+            0
+          );
+
+          return {
+            ...prov,
+            totalSekolah,
+            totalAnggaran,
+          };
+        });
+        provinsiWithTotall.sort((a, b) => b.totalSekolah - a.totalSekolah);
+        // buat chart pakai data hasil perhitungan total
+        const labels = provinsiWithTotall.map((item) => item.nama_wilayah);
+        const jumlah = provinsiWithTotall.map((item) => item.totalSekolah);
+        const anggaran = provinsiWithTotall.map((item) => item.totalAnggaran);
 
         setChartData({
           labels,
@@ -60,10 +79,12 @@ export const ComboChart = () => {
               label: "Jumlah Revitalisasi",
               data: jumlah,
               backgroundColor: "rgba(255, 159, 64, 0.7)",
-              borderRadius: 4,
+              borderRadius: 2,
               yAxisID: "y",
+              barPercentage: 1.0,
+              categoryPercentage: 0.7,
               datalabels: {
-                anchor: "end",
+                anchor: "start",
                 align: "end",
                 color: "#000",
                 font: {
@@ -104,10 +125,9 @@ export const ComboChart = () => {
 
   const options = {
     responsive: true,
-    // maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: false, // ⬅️ hilangkan informasi di atas chart
+        display: false, // hilangkan informasi di atas chart
       },
       datalabels: {
         display: true,
@@ -119,23 +139,37 @@ export const ComboChart = () => {
     },
     scales: {
       x: {
+        grid: {
+          display: false, // hilangkan garis vertikal
+          drawBorder: false,
+        },
         ticks: {
+          font: {
+            size: 11,
+          },
           autoSkip: false,
           maxRotation: 60,
           minRotation: 60,
         },
       },
       y: {
-        display: false, // kalau mau hilangkan sisi kiri juga
+        display: false,
+        beginAtZero: true,
+        position: "left",
       },
       y1: {
-        display: false, // kalau mau hilangkan sisi kanan juga
+        display: false,
+        beginAtZero: true,
+        position: "right",
+        grid: {
+          drawOnChartArea: false, // biar garis grid tidak dobel
+        },
       },
     },
   };
 
   return (
-    <div style={{ width: "100%", maxWidth: "100%", margin: "0 auto" }}>
+    <div style={{ maxWidth: "100%", margin: "0 auto" }}>
       {chartData ? (
         <Chart type="bar" data={chartData} options={options} />
       ) : (

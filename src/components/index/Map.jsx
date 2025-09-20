@@ -447,7 +447,11 @@ function Map() {
             </h5>
           </Card.Header>
           <Card.Body>
-            <ComboChart />
+            <Row>
+              <Col>
+                <ComboChart />
+              </Col>
+            </Row>
           </Card.Body>
         </Card>
       </div>
