@@ -28,11 +28,14 @@ body {
   text-shadow: 1px 1px 2px #fff;
 }
 .head-nasional {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
+  background-color: rgb(237, 237, 237);
+  border-radius: 5px;
 }
+
 .isi {
-  font-size: 19px;
+  font-size: 17px;
 }
 .table-prov {
   font-size: 13px;
@@ -41,4 +44,8 @@ body {
 .combo_chart {
   width: "900px";
   margin: "0 auto";
+}
+
+.title-namakab {
+  font-size: 13px;
 }

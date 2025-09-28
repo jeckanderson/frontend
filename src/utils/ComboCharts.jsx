@@ -13,7 +13,7 @@ import {
 } from "chart.js";
 import { Chart } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
-import { cleanNumber } from "./cleanNumber";
+import { cleanNumber } from "../helper/cleanNumber";
 
 // register chart.js
 ChartJS.register(
@@ -28,7 +28,7 @@ ChartJS.register(
   ChartDataLabels
 );
 
-export const ComboChart = () => {
+export const ComboChart = ({ selectedProvinsi }) => {
   const [chartData, setChartData] = useState(null);
 
   useEffect(() => {
@@ -36,40 +36,65 @@ export const ComboChart = () => {
       try {
         const getDataRevitalisasi = await ApiBackend.getRevitalisasi();
 
-        // ambil data provinsi
-        const dataProvinsi = getDataRevitalisasi.filter(
-          (item) => item.tingkat_label === "provinsi"
-        );
+        let labels = [];
+        let jumlah = [];
+        let anggaran = [];
 
-        // hitung total kabupaten per provinsi
-        const provinsiWithTotall = dataProvinsi.map((prov) => {
-          const kabupatenData = getDataRevitalisasi.filter(
+        if (selectedProvinsi) {
+          // ketika provinsi di klik, ambil data jenjang berdasarkan kabupaten dari provinsi yang di pilih
+          const mapingJenjang = getDataRevitalisasi.filter(
             (item) =>
               item.tingkat_label === "kabupaten" &&
-              item.kode_pro === prov.kode_pro
+              item.kode_pro === selectedProvinsi.kode_pro
           );
 
-          const totalSekolah = kabupatenData.reduce(
-            (sum, item) => sum + (item.total_jml_rev_sekolah || 0),
-            0
+          mapingJenjang.sort(
+            (a, b) =>
+              (b.total_jml_rev_sekolah || 0) - (a.total_jml_rev_sekolah || 0)
           );
 
-          const totalAnggaran = kabupatenData.reduce(
-            (sum, item) => sum + cleanNumber(item.total_anggaran_rev || "0"),
-            0
+          labels = mapingJenjang.map((k) => k.nama_wilayah);
+          jumlah = mapingJenjang.map((k) => k.total_jml_rev_sekolah || 0);
+          anggaran = mapingJenjang.map((k) =>
+            cleanNumber(k.total_anggaran_rev || "0")
+          );
+        } else {
+          // Jika tidak ada provinsi dipilih -> tampilkan data nasional per provinsi
+          const dataProvinsi = getDataRevitalisasi.filter(
+            (item) => item.tingkat_label === "provinsi"
           );
 
-          return {
-            ...prov,
-            totalSekolah,
-            totalAnggaran,
-          };
-        });
-        provinsiWithTotall.sort((a, b) => b.totalSekolah - a.totalSekolah);
-        // buat chart pakai data hasil perhitungan total
-        const labels = provinsiWithTotall.map((item) => item.nama_wilayah);
-        const jumlah = provinsiWithTotall.map((item) => item.totalSekolah);
-        const anggaran = provinsiWithTotall.map((item) => item.totalAnggaran);
+          // hitung total kabupaten per provinsi
+          const provinsiWithTotall = dataProvinsi.map((prov) => {
+            const kabupatenData = getDataRevitalisasi.filter(
+              (item) =>
+                item.tingkat_label === "kabupaten" &&
+                item.kode_pro === prov.kode_pro
+            );
+
+            const totalSekolah = kabupatenData.reduce(
+              (sum, item) => sum + (item.total_jml_rev_sekolah || 0),
+              0
+            );
+
+            const totalAnggaran = kabupatenData.reduce(
+              (sum, item) => sum + cleanNumber(item.total_anggaran_rev || "0"),
+              0
+            );
+
+            return {
+              ...prov,
+              totalSekolah,
+              totalAnggaran,
+            };
+          });
+          // fungsi sort dari nilai terbesar ke terkecil
+          provinsiWithTotall.sort((a, b) => b.totalSekolah - a.totalSekolah);
+          // buat chart pakai data hasil perhitungan total
+          labels = provinsiWithTotall.map((item) => item.nama_wilayah);
+          jumlah = provinsiWithTotall.map((item) => item.totalSekolah);
+          anggaran = provinsiWithTotall.map((item) => item.totalAnggaran);
+        }
 
         setChartData({
           labels,
@@ -121,7 +146,7 @@ export const ComboChart = () => {
     };
 
     fetchData();
-  }, []);
+  }, [selectedProvinsi]);
 
   const options = {
     responsive: true,
@@ -148,8 +173,8 @@ export const ComboChart = () => {
             size: 11,
           },
           autoSkip: false,
-          maxRotation: 60,
-          minRotation: 60,
+          maxRotation: 90,
+          minRotation: 90,
         },
       },
       y: {

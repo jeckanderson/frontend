@@ -1,40 +1,53 @@
 import React, { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import getApiBackend from "../../api/ApiBackend";
-import { sumByField } from "../../utils/sumByField";
+import { sumByField } from "../../helper/sumByField";
+import { formatRupiah } from "../../helper/formatRupiah";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-export default function Chart() {
+export default function ChartDonut({ provinsiData }) {
   const [chartData, setChartData] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const getDataRevitalisasi = await getApiBackend.getRevitalisasi();
+    // Data Berdasarkan provinsi yang di klik
+    if (provinsiData) {
+      console.log("Provinsi dipilih:", provinsiData);
 
-        const kabupatenData = getDataRevitalisasi.filter(
-          (item) => item.tingkat_label === "kabupaten"
-        );
+      setChartData([
+        { name: "PAUD", value: provinsiData.anggaran_rev_paud || 0 },
+        { name: "SD", value: provinsiData.anggaran_rev_sd || 0 },
+        { name: "SMP", value: provinsiData.anggaran_rev_smp || 0 },
+        { name: "SMA", value: provinsiData.anggaran_rev_sma || 0 },
+      ]);
+    } else {
+      // Data Nasional
+      const fetchData = async () => {
+        try {
+          const getDataRevitalisasi = await getApiBackend.getRevitalisasi();
 
-        const totalPaud = sumByField(kabupatenData, "anggaran_rev_paud");
-        const totalSd = sumByField(kabupatenData, "anggaran_rev_sd");
-        const totalSmp = sumByField(kabupatenData, "anggaran_rev_smp");
-        const totalSma = sumByField(kabupatenData, "anggaran_rev_sma");
+          const kabupatenData = getDataRevitalisasi.filter(
+            (item) => item.tingkat_label === "kabupaten"
+          );
 
-        setChartData([
-          { name: "PAUD", value: totalPaud },
-          { name: "SD", value: totalSd },
-          { name: "SMP", value: totalSmp },
-          { name: "SMA", value: totalSma },
-        ]);
-      } catch (err) {
-        console.error("Chart => Gagal ambil data API:", err);
-      }
-    };
+          const totalPaud = sumByField(kabupatenData, "anggaran_rev_paud");
+          const totalSd = sumByField(kabupatenData, "anggaran_rev_sd");
+          const totalSmp = sumByField(kabupatenData, "anggaran_rev_smp");
+          const totalSma = sumByField(kabupatenData, "anggaran_rev_sma");
 
-    fetchData();
-  }, []);
+          setChartData([
+            { name: "PAUD", value: totalPaud },
+            { name: "SD", value: totalSd },
+            { name: "SMP", value: totalSmp },
+            { name: "SMA", value: totalSma },
+          ]);
+        } catch (err) {
+          console.error("Chart => Gagal ambil data API:", err);
+        }
+      };
+      fetchData();
+    }
+  }, [provinsiData]);
 
   if (!chartData) return <p>Loading data...</p>;
 
@@ -67,7 +80,7 @@ export default function Chart() {
           {(percent * 100).toFixed(1)}%
         </tspan>
         <tspan x={x} dy="1.2em" fontSize="15">
-          Rp {Number(value).toLocaleString("id-ID")}
+          {formatRupiah(value)}
         </tspan>
       </text>
     );
@@ -85,15 +98,15 @@ export default function Chart() {
           dataKey="value"
           labelLine={false}
           label={renderCustomizedLabel} // pakai custom label
+          stroke="none"
+          strokeWidth={0}
         >
           {chartData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
 
-        <Tooltip
-          formatter={(value) => `Rp ${Number(value).toLocaleString("id-ID")}`}
-        />
+        <Tooltip formatter={(value) => `${formatRupiah(value)}`} />
         <Legend
           content={() => (
             <div
@@ -136,7 +149,7 @@ export default function Chart() {
           dominantBaseline="middle"
           style={{ fontSize: "16px", fontWeight: "bold" }}
         >
-          Rp {Number(totalAll).toLocaleString("id-ID")}
+          {formatRupiah(totalAll)}
         </text>
       </PieChart>
     </div>
