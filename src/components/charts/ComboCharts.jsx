@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import ApiBackend from "../api/ApiBackend";
+import ApiBackend from "../../services/ApiBackend";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,7 +13,7 @@ import {
 } from "chart.js";
 import { Chart } from "react-chartjs-2";
 import ChartDataLabels from "chartjs-plugin-datalabels";
-import { cleanNumber } from "../helper/cleanNumber";
+import { cleanNumber } from "../../helper/cleanNumber";
 
 // register chart.js
 ChartJS.register(
@@ -116,6 +116,7 @@ export const ComboChart = ({ selectedProvinsi }) => {
                   weight: "bold",
                   size: 10,
                 },
+                clip: false,
               },
             },
             {
@@ -136,7 +137,9 @@ export const ComboChart = ({ selectedProvinsi }) => {
                   size: 9,
                 },
                 formatter: (value) => value.toLocaleString("id-ID"),
+                clip: false,
               },
+              clip: false,
             },
           ],
         });
@@ -150,12 +153,22 @@ export const ComboChart = ({ selectedProvinsi }) => {
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false, // hilangkan informasi di atas chart
       },
       datalabels: {
         display: true,
+      },
+    },
+
+    layout: {
+      padding: {
+        top: 20, // tambahkan ruang di atas chart agar label tidak terpotong
+        // right: 20,
+        // left: 10,
+        // bottom: 10,
       },
     },
     interaction: {
@@ -194,7 +207,13 @@ export const ComboChart = ({ selectedProvinsi }) => {
   };
 
   return (
-    <div style={{ maxWidth: "100%", margin: "0 auto" }}>
+    <div
+      style={{
+        width: "100%",
+        height: "550px", // atur tinggi chart sesuai kebutuhan
+        position: "relative",
+      }}
+    >
       {chartData ? (
         <Chart type="bar" data={chartData} options={options} />
       ) : (

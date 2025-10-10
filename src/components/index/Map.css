@@ -2,6 +2,10 @@ body {
   overflow-x: hidden; /* cegah scroll horizontal global */
 }
 
+.sidebar-colors {
+  background-color: #001e6c;
+}
+
 .label-provinsi {
   font-size: 20px !important;
   font-weight: bold;
@@ -41,11 +45,66 @@ body {
   font-size: 13px;
 }
 
-.combo_chart {
+/* .combo_chart {
   width: "900px";
   margin: "0 auto";
+} */
+
+.combo_chart canvas {
+  width: 100% !important;
+  height: auto !important;
 }
 
 .title-namakab {
   font-size: 13px;
+}
+
+/* Style Logo */
+/* Opsi 2 */
+.sidebar-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 0; /* jarak atas bawah */
+}
+
+.sidebar-logo .logo-big {
+  max-width: 40px; /* bisa digedein sesuai kebutuhan */
+  /* border-radius: 50%; */
+}
+
+/* Opsi 1 */
+/* .brand-logo-only {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60px;
+  padding: 0;
+}
+
+.brand-logo-only .brand-image {
+  max-height: 40px;
+  width: auto;
+} */
+
+/* Active */
+.nav-link.active {
+  background-color: #2198c7 !important; /* warna background merah */
+  color: #fff !important; /* warna teks putih */
+}
+
+.row-item {
+  border-bottom: 1px solid #ccc;
+  padding: 2px;
+  margin: 0;
+}
+
+.row-item:last-child {
+  border: none;
+}
+.row-item:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+.row-item:nth-child(even) {
+  background-color: #ffffff;
 }

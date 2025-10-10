@@ -3,8 +3,14 @@ import React from "react";
 function Sidebar() {
   return (
     <div>
-      <aside className="main-sidebar sidebar-dark-primary elevation-4">
-        <a href="#" className="brand-link">
+      <aside className="main-sidebar sidebar-colors elevation-4">
+        <a href="http://localhost:3000/" className="brand-link">
+          <div className="sidebar-logo">
+            <img src="/dist/img/logo.png" alt="Logo" className="logo-big" />
+          </div>
+          {/* <span className="brand-text font-weight-light">Admin</span> */}
+        </a>
+        {/* <a href="#" className="brand-link">
           <img
             src="/dist/img/logo.png"
             alt="AdminLTE Logo"
@@ -12,7 +18,17 @@ function Sidebar() {
             style={{ opacity: "0.8" }}
           />
           <span className="brand-text font-weight-light">Admin</span>
-        </a>
+        </a> */}
+
+        {/* sidebar-dark-primary */}
+        {/* <a href="#" className="brand-link brand-logo-only">
+            <img
+              src="/dist/img/logo.png"
+              alt="Logo"
+              className="brand-image img-circle elevation-3"
+              style={{ opacity: "0.9" }}
+            />
+          </a> */}
         <div className="sidebar">
           <nav className="mt-2">
             <ul
@@ -39,7 +55,7 @@ function Sidebar() {
                 </ul>
               </li> */}
               <li className="nav-item">
-                <a href="#" className="nav-link active">
+                <a href="http://localhost:3000/" className="nav-link active">
                   <i className="nav-icon fas fa-th" />
                   <p>Dashboard</p>
                 </a>

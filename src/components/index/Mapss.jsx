@@ -16,26 +16,31 @@ import { getChartData } from "../charts/getChartData";
 import { totalAnggaranPerJenjang } from "../../utils/totalAnggaranPerJenjang";
 import { jmlRefPerJenjang } from "../../utils/jmlRefPerJenjang";
 import { ProgresBar } from "../../utils/ProgresBar";
-import { getColor } from "../../utils/getColor";
 import { SimpleMap } from "../../utils/SimpleMap";
 import { Chart } from "react-chartjs-2";
-// import { scaleLinear } from "d3-scale";
 
-import {
-  ComposableMap,
-  Geographies,
-  Geography,
-  Marker,
-  ZoomableGroup,
-} from "react-simple-maps";
-import { geoCentroid } from "d3-geo";
+function FitBoundsOnData({ geoData }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (geoData) {
+      const geojsonLayer = L.geoJSON(geoData);
+      const bounds = geojsonLayer.getBounds();
+
+      map.fitBounds(bounds); // zoom otomatis pas ke peta Indonesia
+      map.setMaxBounds(bounds); // batasi agar peta tidak bisa keluar Indonesia
+    }
+  }, [geoData, map]);
+
+  return null;
+}
 
 function Map() {
+  // Fungsi helper untuk format angka
   const formatNumber = (num) => num.toLocaleString("id-ID");
   const [geoData, setGeoData] = useState(null);
   const [provinsi, setProvinsi] = useState([]);
   const [provinsiData, setProvinsiData] = useState([]);
-  const [nasional, setNasional] = useState([]);
   const [selectedProvinsi, setSelectedProvinsi] = useState(null);
   const [kabupatenData, setKabupatenData] = useState([]);
   const [kabupaten, setKabupaten] = useState(0);
@@ -53,8 +58,7 @@ function Map() {
   const [dataKab, setDataKab] = useState(null);
   const [dataJenjang, setJenjang] = useState(null);
   const [selectedKabupaten, setSelectedKabupaten] = useState(null);
-  const [rangeValue, setRangeValue] = useState({ min: 0, max: 0 });
-
+  // const [getChartData, setChartData] = useState(null);
   const {
     data: jmlRefSekolahPerJenjang,
     options: optionsJmlRefSekolahPerJenjang,
@@ -68,12 +72,11 @@ function Map() {
 
   // Ambil GeoJSON
   useEffect(() => {
-    fetch("/indonesia_province_simple.geojson")
+    fetch("/indonesiav1.geojson")
       .then((res) => res.json())
       .then((data) => setGeoData(data))
       .catch((err) => console.error("Gagal fetch GeoJSON:", err));
   }, []);
-  console.log("cek geo", geoData);
 
   // Ambil data backend
   useEffect(() => {
@@ -81,27 +84,18 @@ function Map() {
       try {
         const getDataRevitalisasi = await getApiBackend.getRevitalisasi();
 
+        const provinsi = getDataRevitalisasi.filter(
+          (item) => item.tingkat_label === "provinsi"
+        );
+        console.log("total berdasarkan provinsi", provinsi);
+        setProvinsi(provinsi);
+
         const provinsiData = getDataRevitalisasi.filter(
           (item) => item.tingkat_label === "provinsi"
         );
-        const kabupatenData = getDataRevitalisasi.filter(
-          (item) => item.tingkat_label === "kabupaten"
-        );
-        setProvinsi(provinsiData);
-        setKabupaten(kabupatenData);
-
-        // const provinsi = getDataRevitalisasi.filter(
-        //   (item) => item.tingkat_label === "provinsi"
-        // );
-
-        // setProvinsi(provinsi);
-
-        // const provinsiData = getDataRevitalisasi.filter(
-        //   (item) => item.tingkat_label === "provinsi"
-        // );
 
         const provinsiWithTotals = provinsiData.map((prov) => {
-          const filterData = getDataRevitalisasi.filter(
+          const kabupatenData = getDataRevitalisasi.filter(
             (item) =>
               item.tingkat_label === "kabupaten" &&
               item.kode_pro === prov.kode_pro
@@ -109,31 +103,29 @@ function Map() {
           return {
             ...prov,
             // totalPaud, // tambahan field hasil jumlah
-            totalRefPaud: sumByField(filterData, "Jml_rev_paud"),
-            totalRefSd: sumByField(filterData, "Jml_revi_sd"),
-            totalRefSmp: sumByField(filterData, "Jml_rev_smp"),
-            totalRefSma: sumByField(filterData, "Jml_rev_sma"),
-            totalAnggaranPaud: sumByField(filterData, "anggaran_rev_paud"),
-            totalAnggaranSd: sumByField(filterData, "anggaran_rev_sd"),
-            totalAnggaranSmp: sumByField(filterData, "anggaran_rev_smp"),
-            totalAnggaranSma: sumByField(filterData, "anggaran_rev_sma"),
+            totalRefPaud: sumByField(kabupatenData, "Jml_rev_paud"),
+            totalRefSd: sumByField(kabupatenData, "Jml_revi_sd"),
+            totalRefSmp: sumByField(kabupatenData, "Jml_rev_smp"),
+            totalRefSma: sumByField(kabupatenData, "Jml_rev_sma"),
+            totalAnggaranPaud: sumByField(kabupatenData, "anggaran_rev_paud"),
+            totalAnggaranSd: sumByField(kabupatenData, "anggaran_rev_sd"),
+            totalAnggaranSmp: sumByField(kabupatenData, "anggaran_rev_smp"),
+            totalAnggaranSma: sumByField(kabupatenData, "anggaran_rev_sma"),
           };
         });
         setProvinsiData(provinsiWithTotals);
-
-        const totalsRage = provinsiWithTotals.map(
-          (p) => p.totalRefPaud + p.totalRefSd + p.totalRefSmp + p.totalRefSma
+        // console.log("Provinsi + total PAUD:", provinsiWithTotals);
+        const kabupaten = getDataRevitalisasi.filter(
+          (item) => item.tingkat_label === "kabupaten"
         );
-        setRangeValue({
-          min: Math.min(...totalsRage),
-          max: Math.max(...totalsRage),
-        });
+        console.log("berdasarkan kabupaten", kabupaten);
+        setKabupaten(kabupaten);
 
         const totalSekolah = kabupaten.reduce(
           (sum, item) => sum + (item.total_jml_rev_sekolah || 0),
           0
         );
-
+        console.log(totalSekolah);
         setTotalSemua(totalSekolah);
 
         const totalPaud = kabupaten.reduce(
@@ -177,21 +169,21 @@ function Map() {
           (sum, item) => sum + cleanNumber(item.anggaran_rev_sd),
           0
         );
-
+        // console.log("anggaran sekolah PAUD", anggaranPaud);
         setAnggaranSD(anggaranSD);
 
         const anggaranSMP = kabupaten.reduce(
           (sum, item) => sum + cleanNumber(item.anggaran_rev_smp),
           0
         );
-
+        // console.log("anggaran sekolah PAUD", anggaranPaud);
         setAnggaranSMP(anggaranSMP);
 
         const anggaranSMA = kabupaten.reduce(
           (sum, item) => sum + cleanNumber(item.anggaran_rev_sma),
           0
         );
-
+        // console.log("anggaran sekolah PAUD", anggaranPaud);
         setAnggaranSMA(anggaranSMA);
       } catch (err) {
         console.error("Maps => Gagal ambil data API:", err);
@@ -201,12 +193,19 @@ function Map() {
     fetchDataApi();
   }, []);
 
+  // Style provinsi
+  const geoStyle = {
+    color: "#2543b1ff",
+    weight: 1,
+    fillColor: "#ccccccff",
+    fillOpacity: 0.3,
+  };
+
   const normalisasiNama = (name) =>
     name
       .toLowerCase()
-      .replace(/provinsi|daerah istimewa/gi, "")
-      .replace(/[^a-z\s]/gi, "")
-      .replace(/\s+/g, " ")
+      .replace("provinsi", "")
+      .replace("daerah istimewa", "")
       .trim();
 
   // Pasang summary nasional saat data kabupaten sudah ada
@@ -216,54 +215,94 @@ function Map() {
     }
   }, [kabupaten]);
 
-  const handleProvinceClick = (geo) => {
-    const namaGeo = geo.properties.Propinsi;
-    // const mappedName = getMappedProvinceName(namaGeo);
+  console.log("cek data", selectedKabupaten);
+
+  // Hubungkan GeoJSON dengan API backend
+  const onEachProvince = (feature, layer) => {
+    const namaGeo = normalisasiNama(feature.properties.state);
+
     const prov = provinsi.find(
-      (p) => normalisasiNama(p.nama_wilayah) === normalisasiNama(namaGeo)
+      (p) => normalisasiNama(p.nama_wilayah) === namaGeo
     );
 
     if (prov) {
-      setSelectedProvinsi(prov);
-      console.log("cek provinis", prov);
-      const filterDataKab = kabupaten.filter(
-        (k) => k.tingkat_label === "kabupaten" && k.kode_pro === prov.kode_pro
-      );
-
-      setKabupatenData(filterDataKab);
-
-      const nasional = filterDataKab.map((k) => ({
-        nama_wilayah: k.nama_wilayah,
-        totalRefPaud: k.Jml_rev_paud || 0,
-        totalRefSd: k.Jml_revi_sd || 0,
-        totalRefSmp: k.Jml_rev_smp || 0,
-        totalRefSma: k.Jml_rev_sma || 0,
-        totalAnggaranPaud:
-          parseInt(k.anggaran_rev_paud?.replace(/[^0-9]/g, "")) || 0,
-        totalAnggaranSd:
-          parseInt(k.anggaran_rev_sd?.replace(/[^0-9]/g, "")) || 0,
-        totalAnggaranSmp:
-          parseInt(k.anggaran_rev_smp?.replace(/[^0-9]/g, "")) || 0,
-        totalAnggaranSma:
-          parseInt(k.anggaran_rev_sma?.replace(/[^0-9]/g, "")) || 0,
-      }));
-
-      setNasional(nasional);
-      // summary provinsi
-      setSummary(hitungSummary(filterDataKab));
-
-      // donutchart perjenjang
-      const summary = hitungSummary(filterDataKab);
-      setSummary(summary);
-      // mapping ke ChartDonut
-      setJenjang({
-        anggaran_rev_paud: summary.paud.anggaran,
-        anggaran_rev_sd: summary.sd.anggaran,
-        anggaran_rev_smp: summary.smp.anggaran,
-        anggaran_rev_sma: summary.sma.anggaran,
+      layer.bindTooltip(`Prov. ${prov.nama_wilayah}`, {
+        permanent: true,
+        direction: "center",
+        className: "map-label",
       });
+
+      // event klik*
+      layer.on("click", () => {
+        console.log("Provinsi di klik:", prov);
+        setSelectedProvinsi(prov);
+
+        const filterDataKab = kabupaten.filter(
+          (k) => k.tingkat_label === "kabupaten" && k.kode_pro === prov.kode_pro
+        );
+        console.log("cek data kabupaten", filterDataKab);
+        setKabupatenData(filterDataKab);
+
+        const nasional = filterDataKab.map((k) => ({
+          nama_wilayah: k.nama_wilayah,
+          totalRefPaud: k.Jml_rev_paud || 0,
+          totalRefSd: k.Jml_revi_sd || 0,
+          totalRefSmp: k.Jml_rev_smp || 0,
+          totalRefSma: k.Jml_rev_sma || 0,
+          totalAnggaranPaud:
+            parseInt(k.anggaran_rev_paud?.replace(/[^0-9]/g, "")) || 0,
+          totalAnggaranSd:
+            parseInt(k.anggaran_rev_sd?.replace(/[^0-9]/g, "")) || 0,
+          totalAnggaranSmp:
+            parseInt(k.anggaran_rev_smp?.replace(/[^0-9]/g, "")) || 0,
+          totalAnggaranSma:
+            parseInt(k.anggaran_rev_sma?.replace(/[^0-9]/g, "")) || 0,
+        }));
+
+        setProvinsiData(nasional);
+        // summary provinsi
+        setSummary(hitungSummary(filterDataKab));
+
+        // donutchart perjenjang
+        const summary = hitungSummary(filterDataKab);
+        setSummary(summary);
+        // mapping ke ChartDonut
+        setJenjang({
+          anggaran_rev_paud: summary.paud.anggaran,
+          anggaran_rev_sd: summary.sd.anggaran,
+          anggaran_rev_smp: summary.smp.anggaran,
+          anggaran_rev_sma: summary.sma.anggaran,
+        });
+      });
+      // layer.on("click", () => {
+      //   // console.log("Provinsi di klik:", prov);
+
+      //   // filter semua kabupaten dalam provinsi ini
+      //   const filterDataKab = kabupaten.filter(
+      //     (k) => k.tingkat_label === "kabupaten" && k.kode_pro === prov.kode_pro
+      //   );
+
+      //   // console.log("Data kabupaten dari provinsi:", filterDataKab);
+
+      //   // agregasi anggaran per jenjang
+      //   const totalPaud = sumByField(filterDataKab, "anggaran_rev_paud");
+      //   const totalSd = sumByField(filterDataKab, "anggaran_rev_sd");
+      //   const totalSmp = sumByField(filterDataKab, "anggaran_rev_smp");
+      //   const totalSma = sumByField(filterDataKab, "anggaran_rev_sma");
+
+      //   // kirim ke state sebagai data provinsi yg sudah diolah
+      //   setSelectedProvinsi({
+      //     nama_wilayah: prov.nama_wilayah,
+      //     anggaran_rev_paud: totalPaud,
+      //     anggaran_rev_sd: totalSd,
+      //     anggaran_rev_smp: totalSmp,
+      //     anggaran_rev_sma: totalSma,
+      //   });
+
+      //   // hittung data summary
+      //   setSummary(hitungSummary(filterDataKab));
+      // });
     } else {
-      // fallback jika provinsi tidak ditemukan
       console.warn(`Provinsi ${namaGeo} tidak ditemukan di backend`);
     }
   };
@@ -279,151 +318,39 @@ function Map() {
               </Card.Header>
               <Card.Body className="p-0">
                 <div className="pb-2">
-                  <ComposableMap
-                    projection="geoMercator"
-                    projectionConfig={{
-                      scale: 1650,
-                      center: [118, -2.5],
-                    }}
-                    style={{ width: "100%", height: "320px" }}
+                  <MapContainer
+                    center={[-2.5, 118]}
+                    zoom={12}
+                    minZoom={4}
+                    maxZoom={10}
+                    style={{ height: "320px", width: "100%" }}
                   >
-                    <ZoomableGroup zoom={1}>
-                      {geoData && (
-                        <>
-                          {/* Wilayah Indonesia */}
-                          <Geographies geography={geoData}>
-                            {({ geographies }) =>
-                              geographies.map((geo) => {
-                                const namaGeo = geo.properties.Propinsi;
-                                // const provDataa = provinsi.find(
-                                //   (p) =>
-                                //     normalisasiNama(p.nama_wilayah) ===
-                                //     normalisasiNama(namaGeo)
-                                // );
-
-                                const provDataa = provinsiData.find((p) =>
-                                  p.nama_wilayah
-                                    .trim()
-                                    .toLowerCase()
-                                    .includes(namaGeo.trim().toLowerCase())
-                                );
-
-                                console.log("COLORS", provDataa);
-
-                                const totalValue = provDataa
-                                  ? provDataa.totalRefPaud +
-                                    provDataa.totalRefSd +
-                                    provDataa.totalRefSmp +
-                                    provDataa.totalRefSma
-                                  : 0;
-
-                                console.log(
-                                  "namaGeo:",
-                                  namaGeo,
-                                  "totalValue:",
-                                  totalValue
-                                );
-
-                                const isSelected =
-                                  selectedProvinsi &&
-                                  selectedProvinsi.kode_pro ===
-                                    provDataa?.kode_pro;
-
-                                return (
-                                  <Geography
-                                    key={geo.rsmKey}
-                                    geography={geo}
-                                    onClick={() => handleProvinceClick(geo)}
-                                    style={{
-                                      default: {
-                                        fill: provDataa
-                                          ? isSelected
-                                            ? "#0d5c90ff" // warna biru saat dipilih
-                                            : getColor(
-                                                totalValue,
-                                                rangeValue.min,
-                                                rangeValue.max
-                                              )
-                                          : "#cbd5e1",
-
-                                        stroke: "#fff",
-                                        strokeWidth: 0.5,
-                                        outline: "none",
-                                      },
-                                      hover: {
-                                        fill: "#76a3c1ff",
-                                        cursor: "pointer",
-                                      },
-                                    }}
-                                  />
-                                );
-                              })
-                            }
-                          </Geographies>
-
-                          {/* Label nama provinsi */}
-                          <Geographies geography={geoData}>
-                            {({ geographies }) =>
-                              geographies.map((geo) => {
-                                const [x, y] = geoCentroid(geo);
-                                const namaGeo = geo.properties.Propinsi;
-                                return (
-                                  <Marker key={geo.rsmKey} coordinates={[x, y]}>
-                                    <text
-                                      textAnchor="middle"
-                                      alignmentBaseline="middle"
-                                      fontSize={15}
-                                      fill="#111"
-                                      style={{
-                                        cursor: "pointer",
-                                        fontWeight: "bold",
-                                        userSelect: "none",
-                                        backgroundColor:
-                                          "rgba(255,255,255,0.7)",
-                                      }}
-                                      onClick={() => handleProvinceClick(geo)} // event click provinsi name
-                                      onMouseEnter={(e) =>
-                                        (e.target.style.fill = "#111")
-                                      }
-                                      onMouseLeave={(e) =>
-                                        (e.target.style.fill = "#111")
-                                      }
-                                    >
-                                      {namaGeo}
-                                    </text>
-                                  </Marker>
-                                );
-                              })
-                            }
-                          </Geographies>
-                        </>
-                      )}
-                    </ZoomableGroup>
-                  </ComposableMap>
-                  <div className="container">
-                    <div className="d-flex align-items-center">
-                      {/* Nilai min di kiri */}
-                      <span className="text-sm text-gray-700">
-                        {rangeValue.min}
-                      </span>
-                      {/* Bar gradasi di tengah */}
-                      <div
-                        className="mx-1"
-                        style={{
-                          width: "250px",
-                          height: "14px",
-                          background:
-                            "linear-gradient(to right, #bbdbe8ff, #0e67a1ff)",
-                          borderRadius: "1px",
-                          border: "1px solid #ccc",
-                        }}
-                      ></div>
-
-                      {/* Nilai max di kanan */}
-                      <span className="text-sm text-gray-700">
-                        {rangeValue.max}
-                      </span>
-                    </div>
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution="&copy; OpenStreetMap contributors"
+                    />
+                    {geoData && provinsiData.length > 0 && (
+                      <>
+                        <GeoJSON
+                          data={geoData}
+                          style={geoStyle}
+                          onEachFeature={onEachProvince}
+                        />
+                        <FitBoundsOnData geoData={geoData} />
+                      </>
+                    )}
+                  </MapContainer>
+                  {/* {geoData && provinsiData.length > 0 && (
+                    <SimpleMap
+                      geoData={geoData}
+                      provinsiData={provinsiData}
+                      onSelectProvince={onEachProvince}
+                      geoStyle={geoStyle}
+                    />
+                  )}
+                  ; */}
+                  <div className="mx-2 mt-2">
+                    <ProgresBar />
                   </div>
                 </div>
               </Card.Body>
@@ -655,7 +582,7 @@ function Map() {
             <Col md="4">
               <Card className="p-4">
                 <div className="text-center">
-                  Jumlah Revitalisasi Sekolah per Jenjang <br /> (
+                  Jumlah Revitalisasi Sekolah per Jenjang (
                   {selectedKabupaten.nama_wilayah})
                 </div>
                 <div style={{ height: "220px" }}>

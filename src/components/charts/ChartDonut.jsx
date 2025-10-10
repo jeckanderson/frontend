@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-import getApiBackend from "../../api/ApiBackend";
+import getApiBackend from "../../services/ApiBackend";
 import { sumByField } from "../../helper/sumByField";
 import { formatRupiah } from "../../helper/formatRupiah";
 
@@ -12,7 +12,7 @@ export default function ChartDonut({ provinsiData }) {
   useEffect(() => {
     // Data Berdasarkan provinsi yang di klik
     if (provinsiData) {
-      console.log("Provinsi dipilih:", provinsiData);
+      // console.log("Provinsi dipilih:", provinsiData);
 
       setChartData([
         { name: "PAUD", value: provinsiData.anggaran_rev_paud || 0 },
@@ -145,6 +145,7 @@ export default function ChartDonut({ provinsiData }) {
         <text
           x="50%"
           y="50%"
+          dy="-20"
           textAnchor="middle"
           dominantBaseline="middle"
           style={{ fontSize: "16px", fontWeight: "bold" }}

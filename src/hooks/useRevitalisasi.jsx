@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getRevitalisasi } from "../api/ApiBackend";
+import { getRevitalisasi } from "../services/ApiBackend";
 
 export const useRevitalisasi = () => {
   const [data, setData] = useState([]);

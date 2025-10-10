@@ -15,7 +15,7 @@ export function getChartData(kabupaten) {
     datasets: [
       {
         type: "bar",
-        label: "Jumlah Sekolah",
+        label: "Jumlah Revitalisasi",
         data: [
           kabupaten?.totalRefPaud || 0,
           kabupaten?.totalRefSd || 0,
@@ -24,7 +24,7 @@ export function getChartData(kabupaten) {
         ],
         backgroundColor: "rgba(139, 226, 255, 0.98)",
         borderRadius: 3,
-        yAxisID: "y1",
+        yAxisID: "y",
         order: 2,
       },
       {
@@ -40,7 +40,7 @@ export function getChartData(kabupaten) {
         borderWidth: 2,
         pointBackgroundColor: "rgba(243, 25, 9, 1)",
         fill: false,
-        yAxisID: "y",
+        yAxisID: "y1",
         order: 1,
       },
     ],
@@ -69,7 +69,7 @@ export function getChartData(kabupaten) {
       },
     },
     scales: {
-      y1: {
+      y: {
         beginAtZero: true,
         position: "right",
         grid: {
@@ -80,13 +80,14 @@ export function getChartData(kabupaten) {
           display: true,
           text: "Jumlah Revitalisasi",
           color: "red",
-          // rotation: -30,
+          // rotation: -90,
+          align: "center",
         },
         ticks: {
           color: "red",
         },
       },
-      y: {
+      y1: {
         beginAtZero: true,
         position: "left",
         grid: {
@@ -96,7 +97,7 @@ export function getChartData(kabupaten) {
           display: true,
           text: "Anggaran (Rp)",
           color: "blue",
-          // rotation: -30,
+          // rotation: -90,
         },
         ticks: {
           color: "blue",
