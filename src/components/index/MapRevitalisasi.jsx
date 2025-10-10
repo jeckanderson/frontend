@@ -32,10 +32,14 @@ import { geoCentroid } from "d3-geo";
 
 function Map() {
   const formatNumber = (num) => num.toLocaleString("id-ID");
+  const [withTotalProvinsi, setWithTotalProvinsi] = useState([]);
+  const [withTotalKabupaten, setWithTotalKabupaten] = useState([]);
+
+  // const [provinsiData, setWithTotal] = useState([]);
+
   const [geoData, setGeoData] = useState(null);
   const [provinsi, setProvinsi] = useState([]);
-  const [provinsiData, setProvinsiData] = useState([]);
-  const [nasional, setNasional] = useState([]);
+
   const [selectedProvinsi, setSelectedProvinsi] = useState(null);
   const [kabupatenData, setKabupatenData] = useState([]);
   const [kabupaten, setKabupaten] = useState(0);
@@ -50,7 +54,6 @@ function Map() {
   const [anggaranSMP, setAnggaranSMP] = useState(0);
   const [anggaranSMA, setAnggaranSMA] = useState(0);
   const [summary, setSummary] = useState(null);
-  const [dataKab, setDataKab] = useState(null);
   const [dataJenjang, setJenjang] = useState(null);
   const [selectedKabupaten, setSelectedKabupaten] = useState(null);
   const [rangeValue, setRangeValue] = useState({ min: 0, max: 0 });
@@ -81,26 +84,16 @@ function Map() {
       try {
         const getDataRevitalisasi = await getApiBackend.getRevitalisasi();
 
-        const provinsiData = getDataRevitalisasi.filter(
+        const getProvinsi = getDataRevitalisasi.filter(
           (item) => item.tingkat_label === "provinsi"
         );
-        const kabupatenData = getDataRevitalisasi.filter(
+        const getKabupaten = getDataRevitalisasi.filter(
           (item) => item.tingkat_label === "kabupaten"
         );
-        setProvinsi(provinsiData);
-        setKabupaten(kabupatenData);
+        setProvinsi(getProvinsi);
+        setKabupaten(getKabupaten);
 
-        // const provinsi = getDataRevitalisasi.filter(
-        //   (item) => item.tingkat_label === "provinsi"
-        // );
-
-        // setProvinsi(provinsi);
-
-        // const provinsiData = getDataRevitalisasi.filter(
-        //   (item) => item.tingkat_label === "provinsi"
-        // );
-
-        const provinsiWithTotals = provinsiData.map((prov) => {
+        const provinsiWithTotals = getProvinsi.map((prov) => {
           const filterData = getDataRevitalisasi.filter(
             (item) =>
               item.tingkat_label === "kabupaten" &&
@@ -119,7 +112,8 @@ function Map() {
             totalAnggaranSma: sumByField(filterData, "anggaran_rev_sma"),
           };
         });
-        setProvinsiData(provinsiWithTotals);
+        // setWithTotal(provinsiWithTotals);
+        setWithTotalProvinsi(provinsiWithTotals);
 
         const totalsRage = provinsiWithTotals.map(
           (p) => p.totalRefPaud + p.totalRefSd + p.totalRefSmp + p.totalRefSma
@@ -225,9 +219,9 @@ function Map() {
 
     if (prov) {
       setSelectedProvinsi(prov);
-      console.log("cek provinis", prov);
+
       const filterDataKab = kabupaten.filter(
-        (k) => k.tingkat_label === "kabupaten" && k.kode_pro === prov.kode_pro
+        (k) => k.kode_pro === prov.kode_pro
       );
 
       setKabupatenData(filterDataKab);
@@ -248,7 +242,8 @@ function Map() {
           parseInt(k.anggaran_rev_sma?.replace(/[^0-9]/g, "")) || 0,
       }));
 
-      setNasional(nasional);
+      // setWithTotal(nasional);
+      setWithTotalKabupaten(nasional);
       // summary provinsi
       setSummary(hitungSummary(filterDataKab));
 
@@ -295,20 +290,15 @@ function Map() {
                             {({ geographies }) =>
                               geographies.map((geo) => {
                                 const namaGeo = geo.properties.Propinsi;
-                                // const provDataa = provinsi.find(
-                                //   (p) =>
-                                //     normalisasiNama(p.nama_wilayah) ===
-                                //     normalisasiNama(namaGeo)
-                                // );
-
-                                const provDataa = provinsiData.find((p) =>
-                                  p.nama_wilayah
-                                    .trim()
-                                    .toLowerCase()
-                                    .includes(namaGeo.trim().toLowerCase())
+                                const provDataa = withTotalProvinsi.find(
+                                  (p) =>
+                                    normalisasiNama(p.nama_wilayah) ===
+                                    normalisasiNama(namaGeo)
                                 );
-
-                                console.log("COLORS", provDataa);
+                                // console.log("cek geo data", provDataa);
+                                if (provDataa) {
+                                  console.log("Data prov:", namaGeo, provDataa);
+                                }
 
                                 const totalValue = provDataa
                                   ? provDataa.totalRefPaud +
@@ -569,7 +559,7 @@ function Map() {
                       </tr>
                     </thead>
                     <tbody>
-                      {provinsiData.map((item, i) => (
+                      {withTotalKabupaten.map((item, i) => (
                         <tr key={i}>
                           <td
                             onClick={() =>
@@ -638,7 +628,7 @@ function Map() {
                 <Row>
                   <Col md={6}>
                     <>
-                      <ChartDonut provinsiData={dataJenjang} />
+                      <ChartDonut withTotalProvinsi={dataJenjang} />
                     </>
                   </Col>
                 </Row>

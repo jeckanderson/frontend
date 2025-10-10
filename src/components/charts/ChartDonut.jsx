@@ -6,19 +6,19 @@ import { formatRupiah } from "../../helper/formatRupiah";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-export default function ChartDonut({ provinsiData }) {
+export default function ChartDonut({ withTotalProvinsi }) {
   const [chartData, setChartData] = useState(null);
 
   useEffect(() => {
     // Data Berdasarkan provinsi yang di klik
-    if (provinsiData) {
-      // console.log("Provinsi dipilih:", provinsiData);
+    if (withTotalProvinsi) {
+      // console.log("Provinsi dipilih:", withTotalProvinsi);
 
       setChartData([
-        { name: "PAUD", value: provinsiData.anggaran_rev_paud || 0 },
-        { name: "SD", value: provinsiData.anggaran_rev_sd || 0 },
-        { name: "SMP", value: provinsiData.anggaran_rev_smp || 0 },
-        { name: "SMA", value: provinsiData.anggaran_rev_sma || 0 },
+        { name: "PAUD", value: withTotalProvinsi.anggaran_rev_paud || 0 },
+        { name: "SD", value: withTotalProvinsi.anggaran_rev_sd || 0 },
+        { name: "SMP", value: withTotalProvinsi.anggaran_rev_smp || 0 },
+        { name: "SMA", value: withTotalProvinsi.anggaran_rev_sma || 0 },
       ]);
     } else {
       // Data Nasional
@@ -47,7 +47,7 @@ export default function ChartDonut({ provinsiData }) {
       };
       fetchData();
     }
-  }, [provinsiData]);
+  }, [withTotalProvinsi]);
 
   if (!chartData) return <p>Loading data...</p>;
 
