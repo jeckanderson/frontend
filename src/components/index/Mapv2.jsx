@@ -1,18 +1,25 @@
 import React, { useEffect, useState } from "react";
+import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./Map.css";
 import ChartDonut from "../charts/ChartDonut";
 import { Card, Row, Col, ListGroup, Container, Table } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
+import getApiBackend from "../../services/ApiBackend";
+import { cleanNumber } from "../../helper/cleanNumber";
 import { formatRupiah } from "../../helper/formatRupiah";
+import { sumByField } from "../../helper/sumByField";
 import { ComboChart } from "../charts/ComboCharts";
 import { hitungSummary } from "../../helper/hitungSummary";
 import { getChartData } from "../charts/getChartData";
 import { totalAnggaranPerJenjang } from "../../utils/totalAnggaranPerJenjang";
 import { jmlRefPerJenjang } from "../../utils/jmlRefPerJenjang";
+import { ProgresBar } from "../../utils/ProgresBar";
 import { getColor } from "../../utils/getColor";
+import { SimpleMap } from "../../utils/SimpleMap";
 import { Chart } from "react-chartjs-2";
-import useRevitalisasiData from "../../hooks/useRevitalisasiData";
+// import { scaleLinear } from "d3-scale";
 
 import {
   ComposableMap,
@@ -25,32 +32,31 @@ import { geoCentroid } from "d3-geo";
 
 function Map() {
   const formatNumber = (num) => num.toLocaleString("id-ID");
+  const [withTotalProvinsi, setWithTotalProvinsi] = useState([]);
   const [withTotalKabupaten, setWithTotalKabupaten] = useState([]);
-  const {
-    provinsi,
-    kabupaten,
-    withTotalProvinsi,
-    rangeValue,
-    totalSemua,
-    totalPaud,
-    totalSd,
-    totalSmp,
-    totalSma,
-    totalAnggaranRef,
-    anggaranPaud,
-    anggaranSD,
-    anggaranSMP,
-    anggaranSMA,
-  } = useRevitalisasiData();
+
+  // const [provinsiData, setWithTotal] = useState([]);
 
   const [geoData, setGeoData] = useState(null);
+  const [provinsi, setProvinsi] = useState([]);
 
   const [selectedProvinsi, setSelectedProvinsi] = useState(null);
   const [kabupatenData, setKabupatenData] = useState([]);
-
+  const [kabupaten, setKabupaten] = useState(0);
+  const [totalSekolah, setTotalSemua] = useState(0);
+  const [totalPaud, setTotalPaud] = useState(0);
+  const [totalSd, setTotalSd] = useState(0);
+  const [totalSmp, setTotalSmp] = useState(0);
+  const [totalSma, setTotalSma] = useState(0);
+  const [totalAnggaranRef, setTotaAnggaranRef] = useState(0);
+  const [anggaranPaud, setAnggaranPaud] = useState(0);
+  const [anggaranSD, setAnggaranSD] = useState(0);
+  const [anggaranSMP, setAnggaranSMP] = useState(0);
+  const [anggaranSMA, setAnggaranSMA] = useState(0);
   const [summary, setSummary] = useState(null);
   const [dataJenjang, setJenjang] = useState(null);
   const [selectedKabupaten, setSelectedKabupaten] = useState(null);
+  const [rangeValue, setRangeValue] = useState({ min: 0, max: 0 });
 
   const {
     data: jmlRefSekolahPerJenjang,
@@ -71,6 +77,123 @@ function Map() {
       .catch((err) => console.error("Gagal fetch GeoJSON:", err));
   }, []);
   console.log("cek geo", geoData);
+
+  // Ambil data backend
+  useEffect(() => {
+    const fetchDataApi = async () => {
+      try {
+        const getDataRevitalisasi = await getApiBackend.getRevitalisasi();
+
+        const getProvinsi = getDataRevitalisasi.filter(
+          (item) => item.tingkat_label === "provinsi"
+        );
+        const getKabupaten = getDataRevitalisasi.filter(
+          (item) => item.tingkat_label === "kabupaten"
+        );
+        setProvinsi(getProvinsi);
+        setKabupaten(getKabupaten);
+
+        const provinsiWithTotals = getProvinsi.map((prov) => {
+          const filterData = getDataRevitalisasi.filter(
+            (item) =>
+              item.tingkat_label === "kabupaten" &&
+              item.kode_pro === prov.kode_pro
+          );
+          return {
+            ...prov,
+            // totalPaud, // tambahan field hasil jumlah
+            totalRefPaud: sumByField(filterData, "Jml_rev_paud"),
+            totalRefSd: sumByField(filterData, "Jml_revi_sd"),
+            totalRefSmp: sumByField(filterData, "Jml_rev_smp"),
+            totalRefSma: sumByField(filterData, "Jml_rev_sma"),
+            totalAnggaranPaud: sumByField(filterData, "anggaran_rev_paud"),
+            totalAnggaranSd: sumByField(filterData, "anggaran_rev_sd"),
+            totalAnggaranSmp: sumByField(filterData, "anggaran_rev_smp"),
+            totalAnggaranSma: sumByField(filterData, "anggaran_rev_sma"),
+          };
+        });
+        // setWithTotal(provinsiWithTotals);
+        setWithTotalProvinsi(provinsiWithTotals);
+
+        const totalsRage = provinsiWithTotals.map(
+          (p) => p.totalRefPaud + p.totalRefSd + p.totalRefSmp + p.totalRefSma
+        );
+        setRangeValue({
+          min: Math.min(...totalsRage),
+          max: Math.max(...totalsRage),
+        });
+
+        const totalSekolah = kabupaten.reduce(
+          (sum, item) => sum + (item.total_jml_rev_sekolah || 0),
+          0
+        );
+
+        setTotalSemua(totalSekolah);
+
+        const totalPaud = kabupaten.reduce(
+          (sum, item) => sum + item.Jml_rev_paud || 0,
+          0
+        );
+        setTotalPaud(totalPaud);
+
+        const totalSd = kabupaten.reduce(
+          (sum, item) => sum + item.Jml_revi_sd || 0,
+          0
+        );
+        setTotalSd(totalSd);
+
+        const totalSmp = kabupaten.reduce(
+          (sum, item) => sum + item.Jml_rev_smp || 0,
+          0
+        );
+        setTotalSmp(totalSmp);
+
+        const totalSma = kabupaten.reduce(
+          (sum, item) => sum + item.Jml_rev_sma || 0,
+          0
+        );
+        setTotalSma(totalSma);
+
+        // TOTAL ANGGARAN PER JENJANG
+        const totalAnggaranRef = kabupaten.reduce(
+          (sum, item) => sum + cleanNumber(item.total_anggaran_rev),
+          0
+        );
+        setTotaAnggaranRef(totalAnggaranRef);
+
+        const anggaranPaud = kabupaten.reduce(
+          (sum, item) => sum + cleanNumber(item.anggaran_rev_paud),
+          0
+        );
+        setAnggaranPaud(anggaranPaud);
+
+        const anggaranSD = kabupaten.reduce(
+          (sum, item) => sum + cleanNumber(item.anggaran_rev_sd),
+          0
+        );
+
+        setAnggaranSD(anggaranSD);
+
+        const anggaranSMP = kabupaten.reduce(
+          (sum, item) => sum + cleanNumber(item.anggaran_rev_smp),
+          0
+        );
+
+        setAnggaranSMP(anggaranSMP);
+
+        const anggaranSMA = kabupaten.reduce(
+          (sum, item) => sum + cleanNumber(item.anggaran_rev_sma),
+          0
+        );
+
+        setAnggaranSMA(anggaranSMA);
+      } catch (err) {
+        console.error("Maps => Gagal ambil data API:", err);
+      }
+    };
+
+    fetchDataApi();
+  }, []);
 
   const normalisasiNama = (name) =>
     name
@@ -301,16 +424,9 @@ function Map() {
             <Card>
               <Card.Header className="text-center">
                 <h6>
-                  {selectedProvinsi ? (
-                    <div>
-                      Data Revitalisasi di Provinsi{" "}
-                      <span className="text-danger">
-                        {selectedProvinsi.nama_wilayah}
-                      </span>
-                    </div>
-                  ) : (
-                    "Nasional"
-                  )}
+                  {selectedProvinsi
+                    ? `Data Revitalisasi di Provinsi ${selectedProvinsi.nama_wilayah}`
+                    : "Nasional"}
                 </h6>
               </Card.Header>
               <Card.Body className="p-1">
@@ -415,14 +531,9 @@ function Map() {
             <Card>
               <Card.Header className="text-center">
                 <h6>
-                  {selectedProvinsi ? (
-                    <div className="text-danger">
-                      Tabel Revitalisasi Sekolah Provinsi{" "}
-                      {selectedProvinsi.nama_wilayah}
-                    </div>
-                  ) : (
-                    "Tabel Revitalisasi Sekolah Berdasarkan Provinsi"
-                  )}
+                  {selectedProvinsi
+                    ? `Tabel Revitalisasi Sekolah Provinsi ${selectedProvinsi.nama_wilayah}`
+                    : "Tabel Revitalisasi Sekolah Berdasarkan Provinsi"}
                 </h6>
               </Card.Header>
               <Card.Body className="p-0">
@@ -432,11 +543,7 @@ function Map() {
                     <thead className="table-secondary">
                       <tr>
                         <th className="text-muted {selectedProvinsi ? 'text-danger' : ''}">
-                          {selectedProvinsi ? (
-                            <div className="text-danger">Kab/Kota</div>
-                          ) : (
-                            "Provinsi"
-                          )}
+                          {selectedProvinsi ? `Kab/Kota` : "Provinsi"}
                         </th>
                         <th className="text-muted">Bentuk Pendidikan</th>
                         <th className="text-muted">
@@ -603,16 +710,10 @@ function Map() {
         <Card>
           <Card.Header className="text-center">
             <h6>
-              {selectedProvinsi ? (
-                <div className="text-danger">
-                  Banyaknya Jumlah Revitalisasi Sekolah Berdasarkan Anggaran
-                  Revitalisasi di Seluruh Kab/Kota di{" "}
-                  {selectedProvinsi.nama_wilayah}
-                </div>
-              ) : (
-                `Banyak Revitalisasi Sekolah Berdasarkan Anggaran Revitalisasi
-              Berdasarkan Provinsi`
-              )}
+              {selectedProvinsi
+                ? `Banyaknya Jumlah Revitalisasi Sekolah Berdasarkan Anggaran Revitalisasi di Seluruh Kab/Kota di ${selectedProvinsi.nama_wilayah}`
+                : `Banyak Revitalisasi Sekolah Berdasarkan Anggaran Revitalisasi
+              Berdasarkan Provinsi`}
             </h6>
           </Card.Header>
           <Card.Body>

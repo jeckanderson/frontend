@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getRevitalisasi } from "../services/ApiBackend";
 
-export const useRevitalisasi = () => {
+export const hooksApi = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

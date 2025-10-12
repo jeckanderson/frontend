@@ -64,7 +64,7 @@ export default function ChartDonut({ withTotalProvinsi }) {
     value,
   }) => {
     const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 1.15; // dekat chart
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.18; // dekat chart
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
