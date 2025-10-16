@@ -49,7 +49,7 @@ export default function ChartDonut({ withTotalProvinsi }) {
     }
   }, [withTotalProvinsi]);
 
-  if (!chartData) return <p>Loading data...</p>;
+  if (!chartData) return <div>Loading data...</div>;
 
   const totalAll = chartData.reduce((sum, item) => sum + item.value, 0);
 

@@ -142,22 +142,23 @@ function Map() {
 
   return (
     <>
-      <div className="mt-2">
+      <div className="mt-3">
         <Row>
-          <Col md={7}>
-            <Card>
-              <Card.Header className="text-center">
+          <Col md={7} className="mb-3">
+            <h5>Revitalisasi Sarana Belajar Mengajar</h5>
+            <div className="bg-white rounded box-shadow pb-1">
+              <div className="text-center py-3">
                 <h6>Persebaran Program Revitalisasi Sekolah Nasional</h6>
-              </Card.Header>
-              <Card.Body className="p-0">
+              </div>
+              <div>
                 <div className="pb-2">
                   <ComposableMap
                     projection="geoMercator"
                     projectionConfig={{
-                      scale: 1650,
+                      scale: 1950,
                       center: [118, -2.5],
                     }}
-                    style={{ width: "100%", height: "320px" }}
+                    style={{ width: "100%", height: "270px" }}
                   >
                     <ZoomableGroup zoom={1}>
                       {geoData && (
@@ -205,7 +206,8 @@ function Map() {
                                       default: {
                                         fill: provDataa
                                           ? isSelected
-                                            ? "#0d5c90ff" // warna biru saat dipilih
+                                            ? // ? "#0d5c90ff"  warna biru saat dipilih
+                                              "#2198C7"
                                             : getColor(
                                                 totalValue,
                                                 rangeValue.min,
@@ -293,12 +295,146 @@ function Map() {
                     </div>
                   </div>
                 </div>
-              </Card.Body>
-            </Card>
+              </div>
+            </div>
           </Col>
 
           <Col md={5}>
-            <Card>
+            <h5 style={{ minHeight: "24px" }}>
+              {selectedProvinsi ? (
+                <div className="text-center">
+                  Data Revitalisasi di Provinsi{" "}
+                </div>
+              ) : (
+                ""
+              )}
+            </h5>
+            <div className="bg-white rounded box-shadow mb-2">
+              <div className="text-center py-3">
+                <h6>
+                  {selectedProvinsi ? (
+                    <div>
+                      <span className="text-danger">
+                        {selectedProvinsi.nama_wilayah}
+                      </span>
+                    </div>
+                  ) : (
+                    <div>Nasional</div>
+                  )}
+                </h6>
+              </div>
+
+              <Row>
+                <div className="d-flex rounded">
+                  <Col md={6}>
+                    <div className="head-nasional mb-2 px-1 ">
+                      <div className="pb-2">
+                        <div className="text-muted">
+                          Total Revitalisasi Sekolah
+                        </div>
+                        <div className="isi">
+                          {formatNumber(summary?.totalSekolah || 0)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="head-nasional mb-2 px-1">
+                      <div className="pb-2">
+                        <div className="text-muted">
+                          Revitalisasi Sekolah PAUD
+                        </div>
+                        <div className="isi">
+                          {formatNumber(summary?.paud?.jumlah || 0)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="head-nasional mb-2 px-1">
+                      <div className="pb-2">
+                        <div className="text-muted">
+                          Revitalisasi Sekolah SD
+                        </div>
+                        <div className="isi">
+                          {formatNumber(summary?.sd?.jumlah || 0)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="head-nasional mb-2 px-1">
+                      <div className="pb-2">
+                        <div className="text-muted">
+                          Revitalisasi Sekolah SMP
+                        </div>
+                        <div className="isi">
+                          {formatNumber(summary?.smp?.jumlah || 0)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="head-nasional mb-2 px-1">
+                      <div className="pb-2">
+                        <div className="text-muted">
+                          Revitalisasi Sekolah SMA
+                        </div>
+                        <div className="isi">
+                          {formatNumber(summary?.sma?.jumlah || 0)}
+                        </div>
+                      </div>
+                    </div>
+                  </Col>
+
+                  <Col md={6}>
+                    <div className="head-nasional mb-2 px-1">
+                      <div className="pb-2">
+                        <div className="text-muted">
+                          Total Anggaran Revitalisasi
+                        </div>
+                        <div className="isi">
+                          {formatRupiah(summary?.totalAnggaran || 0)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="head-nasional mb-2 px-1">
+                      <div className="pb-2">
+                        <div className="text-muted">
+                          Anggaran Revitalisasi Sekolah PAUD
+                        </div>
+                        <div className="isi">
+                          {formatRupiah(summary?.paud?.anggaran || 0)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="head-nasional mb-2 px-1">
+                      <div className="pb-2">
+                        <div className="text-muted">
+                          Anggaran Revitalisasi Sekolah SD
+                        </div>
+                        <div className="isi">
+                          {formatRupiah(summary?.sd?.anggaran || 0)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="head-nasional mb-2 px-1">
+                      <div className="pb-2">
+                        <div className="text-muted">
+                          Anggaran Revitalisasi Sekolah SMP
+                        </div>
+                        <div className="isi">
+                          {formatRupiah(summary?.smp?.anggaran || 0)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="head-nasional mb-2 px-1">
+                      <div className="pb-2">
+                        <div className="text-muted">
+                          Anggaran Revitalisasi Sekolah SMA
+                        </div>
+                        <div className="isi">
+                          {formatRupiah(summary?.sma?.anggaran || 0)}
+                        </div>
+                      </div>
+                    </div>
+                  </Col>
+                </div>
+              </Row>
+            </div>
+            {/* <Card>
               <Card.Header className="text-center">
                 <h6>
                   {selectedProvinsi ? (
@@ -404,16 +540,16 @@ function Map() {
                   </div>
                 </Row>
               </Card.Body>
-            </Card>
+            </Card> */}
           </Col>
         </Row>
       </div>
 
-      <div className="mt-2">
+      <div className="mt-2 mb-3">
         <Row>
           <Col md={7}>
-            <Card>
-              <Card.Header className="text-center">
+            <div className="bg-white rounded box-shadow mb-3">
+              <div className="text-center py-2">
                 <h6>
                   {selectedProvinsi ? (
                     <div className="text-danger">
@@ -424,117 +560,107 @@ function Map() {
                     "Tabel Revitalisasi Sekolah Berdasarkan Provinsi"
                   )}
                 </h6>
-              </Card.Header>
-              <Card.Body className="p-0">
-                {/* <div style={{ overflowX: "auto" }}> */}
-                <div style={{ maxHeight: "457px", overflowY: "auto" }}>
-                  <Table bordered responsive className="table-prov">
-                    <thead className="table-secondary">
-                      <tr>
-                        <th className="text-muted {selectedProvinsi ? 'text-danger' : ''}">
-                          {selectedProvinsi ? (
-                            <div className="text-danger">Kab/Kota</div>
-                          ) : (
-                            "Provinsi"
-                          )}
-                        </th>
-                        <th className="text-muted">Bentuk Pendidikan</th>
-                        <th className="text-muted">
-                          Banyak Sekolah
-                          <br /> Akan di Revitalisasi
-                        </th>
-                        <th
-                          className="text-muted"
-                          style={{ width: "200px", textAlign: "right" }}
+              </div>
+
+              {/* <div style={{ overflowX: "auto" }}> */}
+              <div style={{ maxHeight: "425px", overflowY: "auto" }}>
+                <Table bordered responsive className="table-prov">
+                  <thead className="table-secondary">
+                    <tr>
+                      <th className="text-muted {selectedProvinsi ? 'text-danger' : ''}">
+                        {selectedProvinsi ? (
+                          <div className="text-danger">Kab/Kota</div>
+                        ) : (
+                          "Provinsi"
+                        )}
+                      </th>
+                      <th className="text-muted">Bentuk Pendidikan</th>
+                      <th className="text-muted">
+                        Banyak Sekolah
+                        <br /> Akan di Revitalisasi
+                      </th>
+                      <th
+                        className="text-muted"
+                        style={{ width: "200px", textAlign: "right" }}
+                      >
+                        Anggaran
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(selectedProvinsi
+                      ? withTotalKabupaten
+                      : withTotalProvinsi
+                    ).map((item, i) => (
+                      <tr key={i}>
+                        <td
+                          onClick={() =>
+                            selectedProvinsi && setSelectedKabupaten(item)
+                          }
+                          className={
+                            selectedProvinsi ? "text-danger" : "text-dark"
+                          }
+                          style={{
+                            cursor: selectedProvinsi ? "pointer" : "default",
+                          }}
                         >
-                          Anggaran
-                        </th>
+                          {item.nama_wilayah}
+                        </td>
+                        <td className="p-0 m-0">
+                          <div className="row-item">PAUD</div>
+                          <div className="row-item">SD</div>
+                          <div className="row-item">SMP</div>
+                          <div className="row-item">SMA</div>
+                        </td>
+
+                        <td className="p-0 m-0" style={{ textAlign: "right" }}>
+                          <div className="row-item">{item.totalRefPaud}</div>
+                          <div className="row-item">{item.totalRefSd}</div>
+                          <div className="row-item">{item.totalRefSmp}</div>
+                          <div className="row-item">{item.totalRefSma}</div>
+                        </td>
+
+                        <td
+                          className="p-0 m-0"
+                          style={{ textAlign: "right", width: "200px" }}
+                        >
+                          <div className="row-item">
+                            {formatRupiah(item.totalAnggaranPaud)}
+                          </div>
+                          <div className="row-item">
+                            {formatRupiah(item.totalAnggaranSd)}
+                          </div>
+                          <div className="row-item">
+                            {formatRupiah(item.totalAnggaranSmp)}
+                          </div>
+                          <div className="row-item">
+                            {formatRupiah(item.totalAnggaranSma)}
+                          </div>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {(selectedProvinsi
-                        ? withTotalKabupaten
-                        : withTotalProvinsi
-                      ).map((item, i) => (
-                        <tr key={i}>
-                          <td
-                            onClick={() =>
-                              selectedProvinsi && setSelectedKabupaten(item)
-                            }
-                            className={
-                              selectedProvinsi ? "text-danger" : "text-dark"
-                            }
-                            style={{
-                              cursor: selectedProvinsi ? "pointer" : "default",
-                            }}
-                          >
-                            {item.nama_wilayah}
-                          </td>
-                          <td className="p-0 m-0">
-                            <div className="row-item">PAUD</div>
-                            <div className="row-item">SD</div>
-                            <div className="row-item">SMP</div>
-                            <div className="row-item">SMA</div>
-                          </td>
-
-                          <td
-                            className="p-0 m-0"
-                            style={{ textAlign: "right" }}
-                          >
-                            <div className="row-item">{item.totalRefPaud}</div>
-                            <div className="row-item">{item.totalRefSd}</div>
-                            <div className="row-item">{item.totalRefSmp}</div>
-                            <div className="row-item">{item.totalRefSma}</div>
-                          </td>
-
-                          <td
-                            className="p-0 m-0"
-                            style={{ textAlign: "right", width: "200px" }}
-                          >
-                            <div className="row-item">
-                              {formatRupiah(item.totalAnggaranPaud)}
-                            </div>
-                            <div className="row-item">
-                              {formatRupiah(item.totalAnggaranSd)}
-                            </div>
-                            <div className="row-item">
-                              {formatRupiah(item.totalAnggaranSmp)}
-                            </div>
-                            <div className="row-item">
-                              {formatRupiah(item.totalAnggaranSma)}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                </div>
-              </Card.Body>
-            </Card>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
+            </div>
           </Col>
 
           <Col md={5}>
-            <Card>
-              <Card.Header className="text-center">
+            <div className="bg-white rounded box-shadow pb-1">
+              <div className="text-center py-2">
                 <h6>
                   Anggaran Revitalisasi Sekolah Berdasarkan Bentuk Pendidikan
                 </h6>
-              </Card.Header>
-              <Card.Body className="d-flex justify-content-center align-items-center">
-                <Row>
-                  <Col md={6}>
-                    <>
-                      <ChartDonut withTotalProvinsi={dataJenjang} />
-                    </>
-                  </Col>
-                </Row>
-              </Card.Body>
-            </Card>
+              </div>
+              <div className="d-flex justify-content-center align-items-center">
+                <ChartDonut withTotalProvinsi={dataJenjang} />
+              </div>
+            </div>
           </Col>
         </Row>
       </div>
 
-      {/* 🔹 Tampilkan ComboChart hanya kalau kabupaten dipilih */}
+      {/*  Tampilkan ComboChart hanya kalau kabupaten dipilih */}
       {selectedKabupaten && (
         <div className="mt-2">
           <Row>
@@ -599,14 +725,14 @@ function Map() {
         </div>
       )}
 
-      <div className="combo_chart mt-3 mb-5">
-        <Card>
-          <Card.Header className="text-center">
+      <div className="combo_chart mt-2 mb-5">
+        <div className="bg-white rounded box-shadow pb-1">
+          <div className="text-center py-3">
             <h6>
               {selectedProvinsi ? (
                 <div className="text-danger">
                   Banyaknya Jumlah Revitalisasi Sekolah Berdasarkan Anggaran
-                  Revitalisasi di Seluruh Kab/Kota di{" "}
+                  Revitalisasi di Seluruh Kab/Kota di Provinsi{" "}
                   {selectedProvinsi.nama_wilayah}
                 </div>
               ) : (
@@ -614,15 +740,14 @@ function Map() {
               Berdasarkan Provinsi`
               )}
             </h6>
-          </Card.Header>
-          <Card.Body>
-            <Row>
-              <Col>
-                <ComboChart selectedProvinsi={selectedProvinsi} />
-              </Col>
-            </Row>
-          </Card.Body>
-        </Card>
+          </div>
+
+          <Row>
+            <Col>
+              <ComboChart selectedProvinsi={selectedProvinsi} />
+            </Col>
+          </Row>
+        </div>
       </div>
     </>
   );

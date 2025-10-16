@@ -33,7 +33,7 @@ export default function useRevitalisasiData() {
         setProvinsi(getProvinsi);
         setKabupaten(getKabupaten);
 
-        // 🔹 Hitung total per provinsi
+        // Hitung total per provinsi
         const provinsiWithTotals = getProvinsi.map((prov) => {
           const filterData = getDataRevitalisasi.filter(
             (item) =>
@@ -54,7 +54,7 @@ export default function useRevitalisasiData() {
         });
         setWithTotalProvinsi(provinsiWithTotals);
 
-        // 🔹 Ambil nilai min-max untuk skala warna
+        // Ambil nilai min-max untuk skala warna
         const totalsRage = provinsiWithTotals.map(
           (p) => p.totalRefPaud + p.totalRefSd + p.totalRefSmp + p.totalRefSma
         );
@@ -63,7 +63,7 @@ export default function useRevitalisasiData() {
           max: Math.max(...totalsRage),
         });
 
-        // 🔹 Total Nasional
+        // Total Nasional
         const totalSekolah = getKabupaten.reduce(
           (sum, item) => sum + (item.total_jml_rev_sekolah || 0),
           0
@@ -94,7 +94,7 @@ export default function useRevitalisasiData() {
     fetchDataApi();
   }, []);
 
-  // 🔹 Return semua state biar bisa diakses di komponen utama
+  // Return semua state biar bisa diakses di komponen utama
   return {
     provinsi,
     kabupaten,
